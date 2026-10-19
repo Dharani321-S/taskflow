@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="TaskFlow: a simple task manager with login, CRUD and saved state.">
+  <title>TaskFlow | Task Manager</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%230b5cad%27/%3E%3Cpath d=%27M9 17l5 5 9-11%27 stroke=%27white%27 stroke-width=%273.5%27 fill=%27none%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <p class="brand">TaskFlow</p>
+    <div id="user-bar" class="user-bar" hidden>
+      <span>Signed in as <strong id="user-name"></strong></span>
+      <button type="button" id="logout" class="btn btn-secondary">Log out</button>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section id="auth-view" class="panel narrow" aria-labelledby="auth-title">
+      <h1 id="auth-title" tabindex="-1">Log in</h1>
+      <p class="notice">Demo app: accounts are simulated and saved only in this browser.</p>
+      <form id="auth-form" novalidate>
+        <p id="auth-error" class="error" role="alert" hidden></p>
+        <div class="field" id="name-field" hidden>
+          <label for="name">Name</label>
+          <input id="name" type="text" autocomplete="name" aria-describedby="name-error">
+          <p class="error" id="name-error" hidden></p>
+        </div>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" type="email" autocomplete="email" aria-describedby="email-error">
+          <p class="error" id="email-error" hidden></p>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" aria-describedby="password-hint password-error">
+          <p class="hint" id="password-hint">At least 8 characters.</p>
+          <p class="error" id="password-error" hidden></p>
+        </div>
+        <button type="submit" id="auth-submit" class="btn">Log in</button>
+      </form>
+      <p><span id="auth-switch-text">New here?</span> <button type="button" id="auth-switch" class="link-btn">Create an account</button></p>
+      <p><button type="button" id="demo-btn" class="btn btn-secondary">Try the demo account</button></p>
+    </section>
+
+    <section id="app-view" hidden aria-labelledby="app-heading">
+      <h1 id="app-heading" tabindex="-1">Your tasks</h1>
+      <ul class="stats" aria-label="Task summary">
+        <li class="stat"><span class="stat-num" id="stat-total">0</span> Total</li>
+        <li class="stat"><span class="stat-num" id="stat-progress">0</span> In progress</li>
+        <li class="stat"><span class="stat-num" id="stat-done">0</span> Done</li>
+        <li class="stat"><span class="stat-num" id="stat-overdue">0</span> Overdue</li>
+      </ul>
+
+      <div class="toolbar">
+        <div class="field"><label for="search">Search tasks</label><input id="search" type="search" autocomplete="off"></div>
+        <div class="field"><label for="sort">Sort by</label>
+          <select id="sort"><option value="due">Due date</option><option value="priority">Priority</option><option value="newest">Newest first</option></select>
+        </div>
+        <button type="button" id="add-task" class="btn">Add task</button>
+      </div>
+
+      <div class="tabs" role="group" aria-label="Filter by status">
+        <button type="button" class="tab" data-status="all" aria-pressed="true">All</button>
+        <button type="button" class="tab" data-status="todo" aria-pressed="false">To do</button>
+        <button type="button" class="tab" data-status="in-progress" aria-pressed="false">In progress</button>
+        <button type="button" class="tab" data-status="done" aria-pressed="false">Done</button>
+      </div>
+      <p id="task-count" role="status"></p>
+      <ul id="task-list" class="task-list"></ul>
+      <p id="empty" class="panel" hidden>No tasks to show. Add a task to get started.</p>
+    </section>
+    <p id="live" class="sr-only" role="status"></p>
+  </main>
+
+  <dialog id="task-dialog" class="modal" aria-labelledby="task-dialog-title">
+    <form id="task-form" novalidate>
+      <h2 id="task-dialog-title">Add task</h2>
+      <div class="field"><label for="t-title">Title <span class="req">(required)</span></label>
+        <input id="t-title" type="text" maxlength="100" aria-describedby="t-title-error">
+        <p class="error" id="t-title-error" hidden></p></div>
+      <div class="field"><label for="t-desc">Description</label><textarea id="t-desc" rows="3"></textarea></div>
+      <div class="row">
+        <div class="field"><label for="t-priority">Priority</label>
+          <select id="t-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
+        <div class="field"><label for="t-status">Status</label>
+          <select id="t-status"><option value="todo">To do</option><option value="in-progress">In progress</option><option value="done">Done</option></select></div>
+        <div class="field"><label for="t-due">Due date</label><input id="t-due" type="date"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="task-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn">Save task</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="modal" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+    <form method="dialog">
+      <h2 id="confirm-title">Delete task?</h2>
+      <p id="confirm-text"></p>
+      <div class="modal-actions">
+        <button type="submit" value="cancel" class="btn btn-secondary">Cancel</button>
+        <button type="submit" value="confirm" class="btn btn-danger">Delete</button>
+      </div>
+    </form>
+  </dialog>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
